@@ -124,3 +124,4 @@ sensor_to_blynk/
 ├── skema_rangkaian.svg   # Gambar diagram vektor skema
 └── README.md             # Dokumentasi utama proyek
 ```
+
