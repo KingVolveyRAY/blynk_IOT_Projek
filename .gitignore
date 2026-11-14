@@ -1,0 +1,6 @@
+# Editor / IDE local configs
+.vscode/
+
+# Local build / temporary files
+*.tmp
+*.log
