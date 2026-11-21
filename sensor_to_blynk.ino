@@ -37,8 +37,7 @@ char pass[] = "";               // Kosongkan (open network tanpa password)
 DHT dht(DHTPIN, DHTTYPE);
 
 // Sensor Soil Moisture FC-28
-// PENTING: Gunakan ADC1 (GPIO 32, 33, 34, 35, 36, 39). ADC2 tidak bisa digunakan saat WiFi aktif.
-#define SOIL_PIN 34        // GPIO 34 (Analog Input) terhubung ke Pin A0 FC-28
+#define SOIL_PIN 5         // Pin 5 sesuai sambungan kabel Anda di Cirkit Designer
 
 /* 5. KALIBRASI SENSOR SOIL MOISTURE FC-28 UNTUK CIRKIT */
 // Pada simulator Cirkit Designer, slider sensor tanah bekerja secara linier (0 sampai 4095):
@@ -83,37 +82,20 @@ void sendSensorData() {
   Serial.print(humidityAir);
   Serial.println(" %");
 
-  // 2. Baca Sensor Soil Moisture FC-28 (Kelembapan Tanah)
-  // Ambil beberapa sampel untuk mengurangi noise pembacaan analog
+  // 2. Baca Sensor Soil Moisture FC-28 (Kelembapan Tanah) hanya pada Pin 5
   long soilRawSum = 0;
-  const int samples = 10;
+  const int samples = 5;
   for (int i = 0; i < samples; i++) {
     soilRawSum += analogRead(SOIL_PIN);
     delay(5);
   }
   int soilRaw = soilRawSum / samples;
-  int activePin = SOIL_PIN;
-
-  // Jika GPIO 34 bernilai 0, cek pin ADC1 lain (32, 33, 35, 36) barangkali di Cirkit dicolokkan ke pin lain
-  if (soilRaw == 0) {
-    int altPins[] = {32, 33, 35, 36};
-    for (int p : altPins) {
-      int altVal = analogRead(p);
-      if (altVal > 0) {
-        soilRaw = altVal;
-        activePin = p;
-        break;
-      }
-    }
-  }
 
   // 3. ESP32 Mengolah Data: Konversi nilai mentah ADC ke persentase (0% - 100%)
   int soilMoisturePercent = map(soilRaw, SOIL_DRY_VALUE, SOIL_WET_VALUE, 0, 100);
   soilMoisturePercent = constrain(soilMoisturePercent, 0, 100);
 
-  Serial.print("[SENSOR TANAH] Pin: GPIO ");
-  Serial.print(activePin);
-  Serial.print(" | ADC: ");
+  Serial.print("[SENSOR TANAH] Pin 5 | ADC Mentah: ");
   Serial.print(soilRaw);
   Serial.print(" | Kelembapan: ");
   Serial.print(soilMoisturePercent);
