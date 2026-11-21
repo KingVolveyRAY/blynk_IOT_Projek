@@ -41,10 +41,11 @@ DHT dht(DHTPIN, DHTTYPE);
 #define SOIL_PIN 34        // GPIO 34 (Analog Input) terhubung ke Pin A0 FC-28
 
 /* 5. KALIBRASI SENSOR SOIL MOISTURE FC-28 UNTUK CIRKIT */
-// Pada simulator Cirkit Designer, saat slider 100% nilai ADC sensor berada di ~2100, dan saat 0% berada di ~3500.
-// Kalibrasi ini memastikan bahwa saat slider di Cirkit 100%, di Blynk akan terbaca tepat 100%!
-const int SOIL_DRY_VALUE = 3500;  // Nilai saat 0% (kering) pada Cirkit
-const int SOIL_WET_VALUE = 2100;  // Nilai saat 100% (basah penuh) pada Cirkit
+// Pada simulator Cirkit Designer, slider sensor tanah bekerja secara linier (0 sampai 4095):
+// - Slider di posisi 0% (kering) menghasilkan ADC = 0
+// - Slider di posisi 100% (basah penuh) menghasilkan ADC = 4095
+const int SOIL_DRY_VALUE = 0;     // 0% pada Cirkit Designer
+const int SOIL_WET_VALUE = 4095;  // 100% pada Cirkit Designer
 
 /* 6. VIRTUAL PIN BLYNK */
 #define VPIN_SUHU          V0  // Virtual Pin untuk Suhu Udara (°C)
@@ -91,32 +92,30 @@ void sendSensorData() {
     delay(5);
   }
   int soilRaw = soilRawSum / samples;
+  int activePin = SOIL_PIN;
 
-  // Cek pin ADC1 lain (32, 33, 35, 36) jika pin GPIO 34 membaca 0
+  // Jika GPIO 34 bernilai 0, cek pin ADC1 lain (32, 33, 35, 36) barangkali di Cirkit dicolokkan ke pin lain
   if (soilRaw == 0) {
     int altPins[] = {32, 33, 35, 36};
     for (int p : altPins) {
       int altVal = analogRead(p);
       if (altVal > 0) {
         soilRaw = altVal;
+        activePin = p;
         break;
       }
     }
-  }
-
-  // Jika semua pin masih 0 (kabel belum terpasang di Cirkit), jalankan nilai simulasi agar Blynk selalu aktif mendeteksi
-  if (soilRaw == 0) {
-    Serial.println("[INFO SIMULASI] Kabel sensor tanah belum terdeteksi di pin ADC Cirkit. Menjalankan nilai simulasi aktif...");
-    soilRaw = 2100; // Nilai simulasi untuk kondisi basah 100%
   }
 
   // 3. ESP32 Mengolah Data: Konversi nilai mentah ADC ke persentase (0% - 100%)
   int soilMoisturePercent = map(soilRaw, SOIL_DRY_VALUE, SOIL_WET_VALUE, 0, 100);
   soilMoisturePercent = constrain(soilMoisturePercent, 0, 100);
 
-  Serial.print("ADC Mentah Tanah : ");
+  Serial.print("[SENSOR TANAH] Pin: GPIO ");
+  Serial.print(activePin);
+  Serial.print(" | ADC: ");
   Serial.print(soilRaw);
-  Serial.print(" -> Kelembapan Tanah : ");
+  Serial.print(" | Kelembapan: ");
   Serial.print(soilMoisturePercent);
   Serial.println(" %");
 
