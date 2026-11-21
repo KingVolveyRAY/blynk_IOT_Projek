@@ -40,13 +40,15 @@ DHT dht(DHTPIN, DHTTYPE);
 // PENTING: Gunakan ADC1 (GPIO 32, 33, 34, 35, 36, 39). ADC2 tidak bisa digunakan saat WiFi aktif.
 #define SOIL_PIN 34        // GPIO 34 (Analog Input) terhubung ke Pin A0 FC-28
 
-/* 5. KALIBRASI SENSOR SOIL MOISTURE FC-28 */
-// Nilai ADC ESP32 berkisar antara 0 - 4095 (12-bit ADC)
-// Pada kondisi kering (di udara bebas): nilai ADC tinggi (~3200 - 4095)
-// Pada kondisi basah (dalam air): nilai ADC rendah (~1200 - 1800)
-// Silakan sesuaikan nilai kalibrasi ini dengan hasil pengujian Anda
-const int SOIL_DRY_VALUE = 3500;  // Nilai saat tanah/probe kering (0%)
-const int SOIL_WET_VALUE = 1300;  // Nilai saat tanah sangat basah/air (100%)
+/* 5. KALIBRASI SENSOR SOIL MOISTURE FC-28 UNTUK CIRKIT */
+// Pada simulator Cirkit Designer, rentang ADC adalah 0 - 4095.
+// Karakteristik sensor FC-28 di simulator:
+// - Saat tanah 100% basah penuh: tegangan analog turun mendekati 0V (ADC = 0)
+// - Saat tanah 0% kering: tegangan analog naik mendekati 3.3V (ADC = 4095)
+const int SOIL_DRY_VALUE = 4095;  // 0% pada Cirkit Designer
+const int SOIL_WET_VALUE = 0;     // 100% pada Cirkit Designer
+// (Catatan: Jika di Cirkit Anda ternyata slider 100% menghasilkan nilai ADC 4095,
+//  cukup tukar: SOIL_DRY_VALUE = 0 dan SOIL_WET_VALUE = 4095).
 
 /* 6. VIRTUAL PIN BLYNK */
 #define VPIN_SUHU          V0  // Virtual Pin untuk Suhu Udara (°C)
@@ -93,11 +95,6 @@ void sendSensorData() {
     delay(5);
   }
   int soilRaw = soilRawSum / samples;
-
-  // Fallback simulasi tanah jika di Cirkit belum ada probe / pin membaca 0
-  if (soilRaw == 0) {
-    soilRaw = 2100 + random(-100, 100); // Simulasi nilai ADC tanah kondisi ideal
-  }
 
   // 3. ESP32 Mengolah Data: Konversi nilai mentah ADC ke persentase (0% - 100%)
   int soilMoisturePercent = map(soilRaw, SOIL_DRY_VALUE, SOIL_WET_VALUE, 0, 100);
