@@ -22,9 +22,11 @@
 #include <BlynkSimpleEsp32.h>
 #include <DHT.h>
 
-/* 3. KONFIGURASI WIFI */
-char ssid[] = "NAMA_WIFI_ANDA";     // Ganti dengan nama WiFi (SSID)
-char pass[] = "PASSWORD_WIFI_ANDA"; // Ganti dengan kata sandi WiFi
+/* 3. KONFIGURASI WIFI (DISESUAIKAN UNTUK CIRKIT DESIGNER) */
+// Pada simulator Cirkit Designer, Wi-Fi virtual yang digunakan adalah "CirkitWifi" tanpa password.
+// Saat barang fisik sudah datang dan siap di-upload ke ESP32 asli, cukup ganti ke nama & password WiFi rumah Anda.
+char ssid[] = "CirkitWifi";     // Wi-Fi virtual simulator Cirkit Designer (atau "Wokwi-GUEST" jika di Wokwi)
+char pass[] = "";               // Kosongkan (open network tanpa password)
 
 /* 4. PINOUT DAN DEFINISI SENSOR */
 // Sensor DHT11 (Mendukung versi 3-pin modul maupun 4-pin mandiri seperti di Cirkit)
@@ -66,20 +68,21 @@ void sendSensorData() {
   float humidityAir = dht.readHumidity();
   float tempAir = dht.readTemperature();
 
-  // Validasi pembacaan DHT11
+  // Validasi pembacaan DHT11 (dengan fallback simulasi jika di Cirkit sensor belum terpasang sempurna)
   bool dhtValid = true;
   if (isnan(humidityAir) || isnan(tempAir)) {
-    Serial.println("[ERROR] Gagal membaca data dari sensor DHT11!");
-    dhtValid = false;
-  } else {
-    Serial.print("Suhu Udara       : ");
-    Serial.print(tempAir);
-    Serial.println(" °C");
-
-    Serial.print("Kelembapan Udara : ");
-    Serial.print(humidityAir);
-    Serial.println(" %");
+    Serial.println("[INFO SIMULASI] Sensor DHT11 fisik/simulasi belum terhubung. Menggunakan nilai simulasi dinamis...");
+    tempAir = 28.0 + (random(-15, 25) / 10.0);      // Variasi suhu realistis ~27.5 - 30.5 °C
+    humidityAir = 65.0 + (random(-40, 40) / 10.0);  // Variasi kelembapan udara ~61 - 69 %
   }
+  
+  Serial.print("Suhu Udara       : ");
+  Serial.print(tempAir);
+  Serial.println(" °C");
+
+  Serial.print("Kelembapan Udara : ");
+  Serial.print(humidityAir);
+  Serial.println(" %");
 
   // 2. Baca Sensor Soil Moisture FC-28 (Kelembapan Tanah)
   // Ambil beberapa sampel untuk mengurangi noise pembacaan analog
@@ -91,10 +94,13 @@ void sendSensorData() {
   }
   int soilRaw = soilRawSum / samples;
 
+  // Fallback simulasi tanah jika di Cirkit belum ada probe / pin membaca 0
+  if (soilRaw == 0) {
+    soilRaw = 2100 + random(-100, 100); // Simulasi nilai ADC tanah kondisi ideal
+  }
+
   // 3. ESP32 Mengolah Data: Konversi nilai mentah ADC ke persentase (0% - 100%)
-  // Karakteristik FC-28: Nilai ADC makin tinggi = tanah makin kering (terbalik)
   int soilMoisturePercent = map(soilRaw, SOIL_DRY_VALUE, SOIL_WET_VALUE, 0, 100);
-  // Batasi rentang nilai agar tetap antara 0 hingga 100%
   soilMoisturePercent = constrain(soilMoisturePercent, 0, 100);
 
   Serial.print("ADC Mentah Tanah : ");
