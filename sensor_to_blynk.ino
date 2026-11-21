@@ -10,9 +10,9 @@
  **********************************************************************************/
 
 /* 1. KREDENSIAL BLYNK (Wajib di baris paling atas sebelum include library) */
-#define BLYNK_TEMPLATE_ID   "TMPLxxxxxx"       // Ganti dengan Template ID Blynk Anda
-#define BLYNK_TEMPLATE_NAME "Monitoring Sensor" // Ganti dengan nama template Anda
-#define BLYNK_AUTH_TOKEN    "YourAuthToken"    // Ganti dengan Auth Token dari Device Blynk
+#define BLYNK_TEMPLATE_ID   "TMPL66TgMBG67"
+#define BLYNK_TEMPLATE_NAME "Monitoring Sensor"
+#define BLYNK_AUTH_TOKEN    "DSAVECSIH4M3_vO75UDNsjQvs2_uTCZa"
 
 #define BLYNK_PRINT Serial
 
@@ -27,8 +27,10 @@ char ssid[] = "NAMA_WIFI_ANDA";     // Ganti dengan nama WiFi (SSID)
 char pass[] = "PASSWORD_WIFI_ANDA"; // Ganti dengan kata sandi WiFi
 
 /* 4. PINOUT DAN DEFINISI SENSOR */
-// Sensor DHT11
-#define DHTPIN 4           // GPIO 4 terhubung ke Pin Data DHT11
+// Sensor DHT11 (Mendukung versi 3-pin modul maupun 4-pin mandiri seperti di Cirkit)
+// Panduan Pin DHT11 4-Pin (dari kiri ke kanan):
+// Pin 1: VCC (3.3V) | Pin 2: DATA (GPIO 4) | Pin 3: NC (Dibiarkan Kosong) | Pin 4: GND
+#define DHTPIN 4           // GPIO 4 terhubung ke Pin DATA DHT11
 #define DHTTYPE DHT11      // Tipe sensor DHT: DHT11
 DHT dht(DHTPIN, DHTTYPE);
 
@@ -138,6 +140,7 @@ void setup() {
 
   // Inisialisasi Sensor DHT11
   Serial.println("[1/3] Inisialisasi Sensor DHT11...");
+  pinMode(DHTPIN, INPUT_PULLUP); // Aktifkan internal pull-up ESP32 (penting untuk DHT11 4-pin tanpa resistor eksternal)
   dht.begin();
 
   // Inisialisasi Pin Sensor FC-28

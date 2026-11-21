@@ -46,15 +46,26 @@ flowchart TD
 
 ### A. Koneksi Sensor DHT11 ke ESP32
 
-> **Catatan:** Modul DHT11 PCB biasanya memiliki 3 pin bertanda `+` (VCC), `-` (GND), dan `S` atau `OUT` (Data).
+Sensor DHT11 yang beredar di pasaran dan aplikasi simulator (seperti **Cirkit Designer**) umumnya memiliki dua varian fisik:
 
-| Pin DHT11 | Pin ESP32 | Keterangan |
+#### 1. Varian DHT11 4-Pin (Komponen Standalone / Standar di Cirkit Designer)
+Dilihat dari sisi depan (kisi-kisi sensor menghadap ke depan, kaki mengarah ke bawah, diurutkan dari kiri ke kanan):
+
+| Nomor Pin | Nama Pin | Pin ESP32 | Keterangan |
+|---|---|---|---|
+| **Pin 1 (Kiri)** | **VCC** | **3V3** (3.3V) | Catu daya sensor |
+| **Pin 2** | **DATA** | **GPIO 4 (D4)** | Sinyal data digital 1-wire |
+| **Pin 3** | **NC** (No Connect) | *Dikosongkan* | **TIDAK DIHUBUNGKAN** ke mana-mana |
+| **Pin 4 (Kanan)** | **GND** | **GND** | Ground sistem |
+
+*(Catatan: Pada kode program, fitur internal pull-up ESP32 `pinMode(DHTPIN, INPUT_PULLUP)` telah diaktifkan, sehingga Anda dapat langsung menghubungkan Pin 2 ke GPIO 4 tanpa perlu menambahkan resistor eksternal).*
+
+#### 2. Varian DHT11 3-Pin (Modul PCB dengan Resistor Built-in)
+| Pin Modul DHT11 | Pin ESP32 | Keterangan |
 |---|---|---|
-| VCC / `+` | 3V3 (3.3V) | Catu daya sensor (disarankan 3.3V) |
+| VCC / `+` | 3V3 (3.3V) | Catu daya sensor |
 | GND / `-` | GND | Ground sistem |
-| DATA / `S` / `OUT` | GPIO 4 (D4) | Jalur komunikasi data digital 1-wire |
-
-*(Jika menggunakan DHT11 4-kaki tanpa PCB, pasang resistor 10k ohm antara pin VCC dan pin DATA sebagai pull-up resistor)*.
+| DATA / `S` / `OUT` | GPIO 4 (D4) | Jalur komunikasi data digital |
 
 ---
 

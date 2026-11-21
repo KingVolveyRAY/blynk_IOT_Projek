@@ -55,9 +55,11 @@ Berikut visualisasi diagram perkabelan sistem beresolusi tinggi:
 
 | Modul / Sensor | Pin Sensor | Pin ESP32 | Keterangan & Warna Kabel |
 |---|---|---|---|
-| **DHT11** (Suhu & Udara) | VCC (`+`) | **3V3** | Daya 3.3V (Kabel Merah) |
-| | GND (`-`) | **GND** | Ground (Kabel Hitam / Abu-abu) |
-| | DATA (`S` / `OUT`) | **GPIO 4 (D4)** | Data digital 1-wire (Kabel Kuning) |
+| **DHT11 (4-Pin / Cirkit)** | **Pin 1 (VCC)** | **3V3** | Daya 3.3V (Kabel Merah) |
+| | **Pin 2 (DATA)** | **GPIO 4 (D4)** | Data digital 1-wire (Kabel Kuning) |
+| | **Pin 3 (NC)** | *Dikosongkan* | Tidak dihubungkan |
+| | **Pin 4 (GND)** | **GND** | Ground (Kabel Hitam / Abu-abu) |
+| *(Jika DHT11 3-Pin)* | VCC, GND, DATA | 3V3, GND, GPIO 4 | Sama persis (VCC ke 3V3, GND ke GND, OUT ke GPIO 4) |
 | **FC-28** (Kelembapan Tanah) | VCC | **3V3** | **Wajib 3.3V** demi keamanan pin ADC (Kabel Merah) |
 | | GND | **GND** | Ground (Kabel Hitam / Abu-abu) |
 | | A0 (Analog Out) | **GPIO 34 (D34)** | Input ADC1 ESP32 (Kabel Hijau) |
